@@ -1,0 +1,42 @@
+%This line sets the project root file.
+% !TEX root = test_authorcomments.tex
+% !TEX spellcheck = en_US
+% !BIB program = biber
+
+%------------------------------------------------------------------------------------------------------------%
+
+%------------------------------------------------------------------------------------------------------------%
+\documentclass[a4paper,margin=2cm]{article}
+%%-------------------------a----------------------------------------------------------------------------------%
+
+
+\usepackage[]{fusioncategories}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Sample title}
+\author{Jacob C. Bridgeman}
+
+\CreateSymbol{T}{ true }{ }{ true }{ }
+\CreateSymbol{M}{ false }{ }{ true }{ }
+
+\maketitle
+
+\begin{align}
+	\NSymbol{a,b}{c} \\ 
+	\NSymbol{a,b}{c}\\
+	\XSymbol{a,b}{c}{e}\\
+	\FSymbol{a}{b,c,d}{\alpha,e,\beta}{\mu,f,\nu} \\
+	\TSymbol{a}{b}\\
+	\MSymbol{a}{b}\\
+\end{align}
+
+\begin{align}
+    \FSymbol{a}{b,c,d}{e}{f}\\
+    \FSymbol{a,b,c}{d}{\alpha,e,\beta}{\mu,f,\nu}\\
+    \FSymbol*{a,b,c}{d}{\alpha,e,\beta}{\mu,f,\nu}\\
+\end{align}
+
+\end{document}
