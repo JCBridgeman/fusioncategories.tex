@@ -11,23 +11,24 @@
 %% --------------------------------------------------------------------------------
 %% jcbridgeman1@gmail.com
 %% https://jcbridgeman.github.io
-%% Released under the MIT License
+%% Released under the LaTeX Project Public License v1.3c or later
 %% See http://www.latex-project.org/lppl.txt
 %% --------------------------------------------------------------------------------
 %% 
 
-\ProvidesExplPackage{fusioncategories}{2024-07-28}{0.1.0}{A package for fusion category data}
+\ProvidesExplPackage{fusioncategories}{2024-07-29}{0.1.1}{A package for fusion category data}
+%%^^A 2022-01-10
+\RequirePackage{expl3}[2020-01-01]
 
-\RequirePackage{expl3}[2022-01-10]
-
-\IfPackageAtLeastTF{expl3}{2022-01-10}{}{
-\msg_error:nn { fusioncategories } { expl3~version~too~old.~ (Minimum~supported:~2022-01-10) }
+\cs_if_exist:NF \IfPackageAtLeastTF {
+\cs_set_eq:NN \IfPackageAtLeastTF \@ifpackagelater
 }
 
-\RequirePackage{etoolbox}
-\RequirePackage{xcolor}
+\IfPackageAtLeastTF{expl3}{2020-01-01}{}{
+\msg_error:nn { fusioncategories } { expl3~version~too~old.~ (Minimum~supported:~2020-01-01) }
+}
+
 \RequirePackage{amsmath}
-\definecolor{nightBlue}{RGB}{27,81,166}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% fusioncategories PACKAGE OPTIONS
@@ -42,28 +43,64 @@
 \tl_new:N \l__fusioncategories_delimiter_tl
 \tl_set:Nn \l__fusioncategories_delimiter_tl { , }
 
+\tl_new:N \l__fusioncategories_style_tl
+\tl_set:Nn \l__fusioncategories_style_tl { graphical }
+
 \keys_define:nn { fusioncategories }
 {
 delimiter .value_required:n = true,
 delimiter .initial:n = { , },
 delimiter .code:n = { \tl_if_blank:nTF {#1} { \tl_set:Nn \l__fusioncategories_delimiter_tl { , } } { \tl_set:Nn \l__fusioncategories_delimiter_tl {#1} } },
+
+style .choice:,
+style .value_required:n = true,
+style / graphical .code:n = { \tl_set:Nn \l__fusioncategories_style_tl { graphical } },
+%%^^A style / traditional .code:n = { \tl_set:Nn \l_@@_style_tl { traditional } },
+%%^^A style / compact .code:n = { \tl_set:Nn \l_@@_style_tl { compact } },
+style / unknown .code:n = {
+\msg_error:nnnnn { fusioncategories }{ unknown_option_value }{ #1 }
+{ style }{ graphical }
+},
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\IfPackageAtLeastTF{expl3}{2022-01-10}{
 \ProcessKeyOptions [ fusioncategories ]
+}{ 
+\RequirePackage { l3keys2e }
+\ProcessKeysOptions { fusioncategories }
+\RequirePackage { xparse }
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\NewDocumentCommand{\CreateSymbol}{ m m m m m }
+\NewDocumentCommand{\NewSymbol}{ O{ } m m m m m }
 {
-\__fusioncategories_createsymbol:nnnnn { #1 } { #2 } { #3 } { #4 } { #5 }
+\__fusioncategories_createsymbol:nnnnnnn { New } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
 }
+
+\NewDocumentCommand{\RenewSymbol}{ O{ } m m m m m }
+{
+\__fusioncategories_createsymbol:nnnnnnn { Renew } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
+}
+
+\NewDocumentCommand{\ProvideSymbol}{ O{ } m m m m m }
+{
+\__fusioncategories_createsymbol:nnnnnnn { Provide } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
+}
+
+\NewDocumentCommand{\DeclareSymbol}{ O{ } m m m m m }
+{
+\__fusioncategories_createsymbol:nnnnnnn { Declare } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
+}
+
 
 \seq_new:N \l__fusioncategories_subscripts_seq
 \seq_new:N \l__fusioncategories_superscripts_seq
 \seq_new:N \l__fusioncategories_leftindices_seq
 \seq_new:N \l__fusioncategories_rightindices_seq
 
-\NewDocumentEnvironment { xsmallmatrix } { O{ 0.01ex } } {\renewcommand\thickspace{\kern#1}\smallmatrix}{\endsmallmatrix}
+\cs_new:Nn \__fusioncategories_beginsmallmatrix: { \renewcommand\thickspace{\kern 0.01ex} \begin{smallmatrix} }
+\cs_new:Nn \__fusioncategories_endsmallmatrix: { \end{smallmatrix} }
 
 \tl_new:N \l__fusioncategories_left_tl
 \tl_new:N \l__fusioncategories_middle_tl
@@ -71,35 +108,17 @@ delimiter .code:n = { \tl_if_blank:nTF {#1} { \tl_set:Nn \l__fusioncategories_de
 
 \cs_generate_variant:Nn \seq_set_split:Nnn { NVn }
 
-\cs_if_exist:NF \int_if_zero:nF {
-\cs_new:Npn \int_if_zero:nF #1 #2 { \int_compare:nNnF {#1} = { 0 } {#2} }
+\cs_if_exist:NF \int_if_zero_p:n {
+\prg_new_conditional:Npnn \int_if_zero:n #1 { p,T,F,TF }
+{
+\int_compare:nNnTF {#1} = { 0 } { \prg_return_true: } { \prg_return_false: }
+}
 }
 
-\cs_new_protected:Npn \__fusioncategories_catsymbol:nnnnnn #1 #2 #3 #4 #5 #6 {
+\cs_new:Npn \__fusioncategories_graphicalstyle:Nnnnnnn #1 #2 #3 #4 #5 #6 #7 {
 
-\seq_clear:N \l__fusioncategories_subscripts_seq
-\seq_clear:N \l__fusioncategories_superscripts_seq
-\seq_clear:N \l__fusioncategories_leftindices_seq
-\seq_clear:N \l__fusioncategories_rightindices_seq
-
-\tl_if_blank:nF { #3 }{
-\seq_set_split:NVn \l__fusioncategories_subscripts_seq \l__fusioncategories_delimiter_tl { #3 }
-}
-
-\tl_if_blank:nF { #4 }{
-\seq_set_split:NVn \l__fusioncategories_superscripts_seq \l__fusioncategories_delimiter_tl { #4 }
-}
-
-\tl_if_blank:nF { #5 }{
-\seq_set_split:NVn \l__fusioncategories_leftindices_seq \l__fusioncategories_delimiter_tl { #5 }
-}
-
-\tl_if_blank:nF { #6 }{
-\seq_set_split:NVn \l__fusioncategories_rightindices_seq \l__fusioncategories_delimiter_tl { #6 }
-}
-
-\int_set:Nn \l_tmpa_int { \seq_count:N \l__fusioncategories_leftindices_seq }
-\int_set:Nn \l_tmpb_int { \seq_count:N \l__fusioncategories_rightindices_seq }
+\int_set:Nn \l_tmpa_int { \seq_count:N #6 }
+\int_set:Nn \l_tmpb_int { \seq_count:N #7 }
 
 \hbox_set:Nn \l_tmpa_box {  }
 
@@ -109,30 +128,28 @@ delimiter .code:n = { \tl_if_blank:nTF {#1} { \tl_set:Nn \l__fusioncategories_de
 
 \tl_put_right:Nn \l__fusioncategories_left_tl {
 \int_if_zero:nF { \l_tmpa_int } {
-\begin{xsmallmatrix}
-\seq_item:Nn \l__fusioncategories_leftindices_seq {3} \\
-\seq_item:Nn \l__fusioncategories_leftindices_seq {2} \\
-\seq_item:Nn \l__fusioncategories_leftindices_seq {1}
-\end{xsmallmatrix}\!\!
+\seq_reverse:N #6
+\__fusioncategories_beginsmallmatrix:
+\seq_use:Nn #6 { \\ }
+\__fusioncategories_endsmallmatrix: \!\!
 }
  }
 
-\tl_put_right:Nn \l__fusioncategories_middle_tl {
-\IfBooleanT { #2 }{ \cs:w overline \cs_end: \c_group_begin_token }
-#1
-\sb{\seq_use:Nn \l__fusioncategories_subscripts_seq {}}
-\sp{ \seq_use:Nn \l__fusioncategories_superscripts_seq {}}
-\IfBooleanT { #2 }{ \c_group_end_token }
+ \tl_put_right:Nn \l__fusioncategories_middle_tl {
+\IfBooleanT { #3 }{ \cs:w overline \cs_end: \c_group_begin_token }
+#2
+\c_math_subscript_token { \centering \seq_use:Nn #4 {} }
+\c_math_superscript_token { \centering \seq_use:Nn #5 {} }
+\IfBooleanT { #3 }{ \c_group_end_token }
  }
 
 \tl_put_right:Nn \l__fusioncategories_right_tl {
 \int_if_zero:nF { \l_tmpb_int } {
 \!\!
-\begin{xsmallmatrix}
-\seq_item:Nn \l__fusioncategories_rightindices_seq {3} \\
-\seq_item:Nn \l__fusioncategories_rightindices_seq {2} \\
-\seq_item:Nn \l__fusioncategories_rightindices_seq {1}
-\end{xsmallmatrix}
+\seq_reverse:N #7
+\__fusioncategories_beginsmallmatrix:
+\seq_use:Nn #7 { \\ }
+\__fusioncategories_endsmallmatrix:
 }
 }
 
@@ -155,6 +172,37 @@ delimiter .code:n = { \tl_if_blank:nTF {#1} { \tl_set:Nn \l__fusioncategories_de
 \tl_put_left:Nn \l__fusioncategories_middle_tl { \l__fusioncategories_left_tl }
 \tl_put_right:Nn \l__fusioncategories_middle_tl { \l__fusioncategories_right_tl }
 }
+}
+
+\str_case_e:nn { \l__fusioncategories_style_tl } {
+{ graphical } {
+\cs_new_eq:NN \__fusioncategories_style:Nnnnnnn \__fusioncategories_graphicalstyle:Nnnnnnn
+}
+{ traditional } {
+\cs_new_eq:NN \__fusioncategories_style:Nnnnnnn \__fusioncategories_traditionalstyle:Nnnnnnn
+}
+{ compact } {
+\cs_new_eq:NN \__fusioncategories_catsymbol:nnnnnn \__fusioncategories_compactsymbol:nnnnnn
+}
+}
+
+\cs_new:Npn \__fusioncategories_split_if_nonblank_else_clear:Nn #1 #2 {
+\tl_if_blank:nTF { #2 } {
+\seq_clear:N #1
+}
+{
+\seq_set_split:NVn #1 \l__fusioncategories_delimiter_tl { #2 }
+}
+}
+
+\cs_new_protected:Npn \__fusioncategories_catsymbol:nnnnnn #1 #2 #3 #4 #5 #6 {
+
+\__fusioncategories_split_if_nonblank_else_clear:Nn \l__fusioncategories_subscripts_seq { #3 }
+\__fusioncategories_split_if_nonblank_else_clear:Nn \l__fusioncategories_superscripts_seq { #4 }
+\__fusioncategories_split_if_nonblank_else_clear:Nn \l__fusioncategories_leftindices_seq { #5 }
+\__fusioncategories_split_if_nonblank_else_clear:Nn \l__fusioncategories_rightindices_seq { #6 }
+
+\__fusioncategories_graphicalstyle:Nnnnnnn \l__fusioncategories_middle_tl { #1 } { #2 } { \l__fusioncategories_subscripts_seq } { \l__fusioncategories_superscripts_seq } { \l__fusioncategories_leftindices_seq } { \l__fusioncategories_rightindices_seq }
 
 \ensuremath{\tl_use:N \l__fusioncategories_middle_tl}
 }
@@ -177,33 +225,67 @@ delimiter .code:n = { \tl_if_blank:nTF {#1} { \tl_set:Nn \l__fusioncategories_de
 }
 }
 
-\cs_new:Npn \__fusioncategories_createsymbol:nnnnn #1 #2 #3 #4 #5
+\cs_generate_variant:Nn \tl_if_head_eq_catcode:nNTF { xNTF }
+
+\prg_new_conditional:Npnn \__fusioncategories_if_is_cs:n #1 { T,F,TF }
 {
-\seq_set_from_clist:Nn \l_tmpa_seq { #2, #3, #4, #5 }
+\tl_trim_spaces_apply:nN {#1} \tl_if_head_eq_catcode:nNTF \c_backslash_str
+{
+\prg_return_true:
+}
+{
+\prg_return_false:
+}
+}
+
+\tl_new:N \l__fusioncategories_tmpa_t
+
+\cs_new:Npn \__fusioncategories_createsymbol:nnnnnnn #1 #2 #3 #4 #5 #6 #7
+{
+\seq_set_from_clist:Nn \l_tmpa_seq { #4, #5, #6, #7 }
 \tl_set:Nx \l__fusioncategories_argspec_tl { \prg_replicate:nn { \seq_count:N \l_tmpa_seq } { m~ } }
 
 \int_set:Nn \l_tmpa_int { 2 }
 
 \seq_clear:N \l__fusioncategories_command_seq
 
-\__fusioncategories_addtosequence:NVn \l__fusioncategories_command_seq \l_tmpa_int { #2 }
-\__fusioncategories_addtosequence:NVn \l__fusioncategories_command_seq \l_tmpa_int { #3 }
 \__fusioncategories_addtosequence:NVn \l__fusioncategories_command_seq \l_tmpa_int { #4 }
 \__fusioncategories_addtosequence:NVn \l__fusioncategories_command_seq \l_tmpa_int { #5 }
+\__fusioncategories_addtosequence:NVn \l__fusioncategories_command_seq \l_tmpa_int { #6 }
+\__fusioncategories_addtosequence:NVn \l__fusioncategories_command_seq \l_tmpa_int { #7 }
+
+\tl_set:Nn \l__fusioncategories_tmpa_t { #3 }
+\tl_trim_spaces:N \l__fusioncategories_tmpa_t
+
+\__fusioncategories_if_is_cs:nTF { #3 } {
+\tl_set:Nx \l_tmpa_tl { \str_range:Nnn \l__fusioncategories_tmpa_t { 2 }{ -1 } }
+}{
+\tl_set:Nn \l_tmpa_tl { #3 }
+}
+\tl_trim_spaces:N \l_tmpa_tl
+
+\tl_if_blank:nTF { #2 }{
+\tl_set:Nn \l_tmpb_tl { #3 }
+}{
+\tl_set:Nn \l_tmpb_tl { #2 }
+}
 
 \tl_set:Nx \l_tmpa_tl {
-\exp_not:N \DeclareDocumentCommand { \exp_not:c { #1Symbol } } { ~s~\l__fusioncategories_argspec_tl }
+\exp_not:c {#1 DocumentCommand} { \exp_not:c { \l_tmpa_tl Symbol } } { ~s~\l__fusioncategories_argspec_tl }
 {
- \exp_not:c {__fusioncategories_catsymbol:nnnnnn}{#1}{ ####1 }{ \seq_item:Nn \l__fusioncategories_command_seq {1} }{ \seq_item:Nn \l__fusioncategories_command_seq {2} }{ \seq_item:Nn \l__fusioncategories_command_seq {3} }{ \seq_item:Nn \l__fusioncategories_command_seq {4} } } }
+ \exp_not:c {__fusioncategories_catsymbol:nnnnnn}{ \exp_not:V \l_tmpb_tl }{ ####1 }{ \seq_item:Nn \l__fusioncategories_command_seq {1} }{ \seq_item:Nn \l__fusioncategories_command_seq {2} }{ \seq_item:Nn \l__fusioncategories_command_seq {3} }{ \seq_item:Nn \l__fusioncategories_command_seq {4} }
+}
+}
 
 \tl_use:N \l_tmpa_tl
 }
-\__fusioncategories_createsymbol:nnnnn { N }{ true }{ true }{  }{  }
-\__fusioncategories_createsymbol:nnnnn { X }{ true }{ true }{  }{ true }
-\__fusioncategories_createsymbol:nnnnn { F }{ true }{ true }{ true }{ true }
-\__fusioncategories_createsymbol:nnnnn { R }{ true }{ true }{ true }{ true }
+\__fusioncategories_createsymbol:nnnnnnn { New } { } { N }{ true }{ true }{  }{  }
+\__fusioncategories_createsymbol:nnnnnnn { New } { } { X }{ true }{ true }{  }{ true }
+\__fusioncategories_createsymbol:nnnnnnn { New } { } { F }{ true }{ true }{ true }{ true }
+\__fusioncategories_createsymbol:nnnnnnn { New } { } { R }{ true }{ true }{ true }{ true }
 
 \cs_new_eq:NN \F \FSymbol
+
 
 %% 
 %% --------------------------------------------------------------------------------

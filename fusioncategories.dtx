@@ -2,7 +2,7 @@
 %<*internal>
 %
 \ProvidesFile{fusioncategories.dtx}
-[2024-07-28 v0.1.0 FusionCategories package]
+[2024-07-28 v0.1.1 FusionCategories package]
 %
 \begingroup
 %</internal>
@@ -166,10 +166,16 @@ fusioncategories.ins, fusioncategories.sty
 %
 % \date{\filedate}
 %
+%
+\NewSymbol[\tilde{X}]{tX}{true}{}{}{true}
+\NewSymbol{\Gamma}{true}{}{}{}
+%
+%
+%
 \begin{document}
 \maketitle
 \begin{abstract}
-	The \textsf{fusioncategories} package is a package for fusion category data.
+	The \textsf{fusioncategories} package is a package for typesetting fusion category data.
 
 	This document provides a brief overview of the pacakge and its features.
 \end{abstract}
@@ -184,7 +190,8 @@ fusioncategories.ins, fusioncategories.sty
 %</driver>
 % \fi
 %
-% \changes{v0.1.0}{2024-03-05}{Initial version}
+% \changes{v0.1.0}{2024-07-28}{Initial version}
+% \changes{v0.1.1}{2024-07-29}{Added support for Greek letters and command names being different from the symbol text}
 %
 % \iffalse
 %
@@ -207,19 +214,34 @@ fusioncategories.ins, fusioncategories.sty
 % \section{Functions}
 %
 %
-% \begin{function}{\CreateSymbol}
+% \begin{function}{\NewSymbol,\RenewSymbol,\ProvideSymbol,\DeclareSymbol}
 %	\begin{syntax}
-%		\cs{CreateSymbol}\marg{Symbol name}\marg{subscripts?}\marg{superscripts?}\marg{left indices?}\marg{right indices?}
+%		\cs{NewSymbol}\oarg{Symbol text}\marg{Symbol name}\marg{subscripts?}\marg{superscripts?}\marg{left indices?}\marg{right indices?}
 %	\end{syntax}
 %	Creates a new symbol command with the specified argument types.
 %	For example,:
 %	\begin{description}
-%	\item \lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\CreateSymbol{N}{true}{true}{}{}! creates the command:\\
+%	\item \lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NewSymbol{N}{true}{true}{}{}! creates the command:\\
 %	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NSymbol!, which can be used as follows:\\
 %	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NSymbol{a,b}{c}! produces: $\NSymbol{a,b}{c}$.
+%
+%	\item \lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NewSymbol[\tilde{X}]{tX}{true}{}{}{true}! creates the command:\\
+%	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\tXSymbol!, which can be used as follows:\\
+%	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\tXSymbol{a,b}{\mu}! produces: $\tXSymbol{a,b}{\mu}$.
+%
+%
+%	\item \lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NewSymbol{\Gamma}{true}{}{}{}! creates the command:\\
+%	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\GammaSymbol!, which can be used as follows:\\
+%	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\GammaSymbol{a,b}! produces: $\GammaSymbol{a,b}$.
 %	
 %	\item Arguments that are wanted should marked with \texttt{1} or \texttt{true}, and arguments that are not wanted must be left blank or  marked with \texttt{false}.
-%	\item All commands created with \cs{CreateSymbol} also accept an optional star argument to place an overline over the symbol.
+%	\item All commands created with \cs{NewSymbol} also accept an optional star argument to place an overline over the symbol.
+%	\end{description}
+%	\begin{description}
+%		\item \NewSymbol will only create a new symbol command if the command does not already exist, otherwise it will throw an error.
+%		\item \RenewSymbol will overwrite an existing symbol command with the same name. If the command does not exist, it will throw an error.
+%		\item \ProvideSymbol will create a new symbol command if the command does not already exist, otherwise it will do nothing.
+%		\item \DeclareSymbol will create a new symbol regardless of whether the command already exists. If the command already exists, it will overwrite the existing command without warning.
 %	\end{description}
 % \end{function}
 %
@@ -272,18 +294,19 @@ fusioncategories.ins, fusioncategories.sty
 %    \begin{macrocode} 
 %<*fusioncategories>
 %<@@=fusioncategories>
-\ProvidesExplPackage{fusioncategories}{2024-07-28}{0.1.0}{A package for fusion category data}
+\ProvidesExplPackage{fusioncategories}{2024-07-29}{0.1.1}{A package for fusion category data}
+%%^^A 2022-01-10
+\RequirePackage{expl3}[2020-01-01]
 
-\RequirePackage{expl3}[2022-01-10]
-
-\IfPackageAtLeastTF{expl3}{2022-01-10}{}{
-	\msg_error:nn { fusioncategories } { expl3~version~too~old.~ (Minimum~supported:~2022-01-10) }
+\cs_if_exist:NF \IfPackageAtLeastTF {
+	\cs_set_eq:NN \IfPackageAtLeastTF \@ifpackagelater
 }
 
-\RequirePackage{etoolbox}
-\RequirePackage{xcolor}
+\IfPackageAtLeastTF{expl3}{2020-01-01}{}{
+	\msg_error:nn { fusioncategories } { expl3~version~too~old.~ (Minimum~supported:~2020-01-01) }
+}
+
 \RequirePackage{amsmath}
-\definecolor{nightBlue}{RGB}{27,81,166}
 
 %</fusioncategories>
 %    \end{macrocode}
@@ -314,11 +337,24 @@ fusioncategories.ins, fusioncategories.sty
 \tl_new:N \l_@@_delimiter_tl
 \tl_set:Nn \l_@@_delimiter_tl { , }
 
+\tl_new:N \l_@@_style_tl
+\tl_set:Nn \l_@@_style_tl { graphical }
+
 \keys_define:nn { fusioncategories }
 {
 	delimiter .value_required:n = true,
 	delimiter .initial:n = { , },
 	delimiter .code:n = { \tl_if_blank:nTF {#1} { \tl_set:Nn \l_@@_delimiter_tl { , } } { \tl_set:Nn \l_@@_delimiter_tl {#1} } },
+
+	style .choice:,
+	style .value_required:n = true,
+	style / graphical .code:n = { \tl_set:Nn \l_@@_style_tl { graphical } },
+	%%^^A style / traditional .code:n = { \tl_set:Nn \l_@@_style_tl { traditional } },
+	%%^^A style / compact .code:n = { \tl_set:Nn \l_@@_style_tl { compact } },
+	style / unknown .code:n = {
+		\msg_error:nnnnn { fusioncategories }{ unknown_option_value }{ #1 }
+		{ style }{ graphical }
+	},
 }
 
 %    \end{macrocode}
@@ -326,10 +362,19 @@ fusioncategories.ins, fusioncategories.sty
 %</fusioncategories>
 % \fi
 %
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \iffalse
-%<fusioncategories>\ProcessKeyOptions [ fusioncategories ]
+%<*fusioncategories>
+% \fi
+	\IfPackageAtLeastTF{expl3}{2022-01-10}{
+		\ProcessKeyOptions [ fusioncategories ]
+	}{	
+		\RequirePackage { l3keys2e }
+		\ProcessKeysOptions { fusioncategories }
+		\RequirePackage { xparse }
+	}
+% \iffalse
+%</fusioncategories>
 % \fi
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -338,13 +383,29 @@ fusioncategories.ins, fusioncategories.sty
 %<*fusioncategories>
 % \fi
 %
-% \begin{macro}{\CreateSymbol}
+% \begin{macro}{\NewSymbol,\RenewSymbol,\ProvideSymbol,\DeclareSymbol}
 %    \begin{macrocode} 
 
-\NewDocumentCommand{\CreateSymbol}{ m m m m m }
+\NewDocumentCommand{\NewSymbol}{ O{ } m m m m m }
 {
-	\@@_createsymbol:nnnnn { #1 } { #2 } { #3 } { #4 } { #5 }
+	\@@_createsymbol:nnnnnnn { New } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
 }
+
+\NewDocumentCommand{\RenewSymbol}{ O{ } m m m m m }
+{
+	\@@_createsymbol:nnnnnnn { Renew } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
+}
+
+\NewDocumentCommand{\ProvideSymbol}{ O{ } m m m m m }
+{
+	\@@_createsymbol:nnnnnnn { Provide } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
+}
+
+\NewDocumentCommand{\DeclareSymbol}{ O{ } m m m m m }
+{
+	\@@_createsymbol:nnnnnnn { Declare } { #1 } { #2 } { #3 } { #4 } { #5 } { #6 }
+}
+
 %    \end{macrocode}
 % \end{macro}
 %
@@ -357,7 +418,8 @@ fusioncategories.ins, fusioncategories.sty
 \seq_new:N \l_@@_leftindices_seq
 \seq_new:N \l_@@_rightindices_seq
 
-\NewDocumentEnvironment { xsmallmatrix } { O{ 0.01ex } } {\renewcommand\thickspace{\kern#1}\smallmatrix}{\endsmallmatrix}
+\cs_new:Nn \@@_beginsmallmatrix: { \renewcommand\thickspace{\kern 0.01ex} \begin{smallmatrix} }
+\cs_new:Nn \@@_endsmallmatrix: { \end{smallmatrix} }
 
 \tl_new:N \l_@@_left_tl
 \tl_new:N \l_@@_middle_tl
@@ -365,35 +427,17 @@ fusioncategories.ins, fusioncategories.sty
 
 \cs_generate_variant:Nn \seq_set_split:Nnn { NVn }
 
-\cs_if_exist:NF \int_if_zero:nF { 
-	\cs_new:Npn \int_if_zero:nF #1 #2 { \int_compare:nNnF {#1} = { 0 } {#2} }
+\cs_if_exist:NF \int_if_zero_p:n {
+	\prg_new_conditional:Npnn \int_if_zero:n #1 { p,T,F,TF }
+	{
+		\int_compare:nNnTF {#1} = { 0 } { \prg_return_true: } { \prg_return_false: }
 	}
+}
 
-\cs_new_protected:Npn \@@_catsymbol:nnnnnn #1 #2 #3 #4 #5 #6 {
-	
-	\seq_clear:N \l_@@_subscripts_seq
-	\seq_clear:N \l_@@_superscripts_seq
-	\seq_clear:N \l_@@_leftindices_seq
-	\seq_clear:N \l_@@_rightindices_seq
+\cs_new:Npn \@@_graphicalstyle:Nnnnnnn #1 #2 #3 #4 #5 #6 #7 {
 
-	\tl_if_blank:nF { #3 }{
-		\seq_set_split:NVn \l_@@_subscripts_seq \l_@@_delimiter_tl { #3 }
-	}
-	
-	\tl_if_blank:nF { #4 }{
-		\seq_set_split:NVn \l_@@_superscripts_seq \l_@@_delimiter_tl { #4 }
-	}
-
-	\tl_if_blank:nF { #5 }{
-		\seq_set_split:NVn \l_@@_leftindices_seq \l_@@_delimiter_tl { #5 }
-	}
-
-	\tl_if_blank:nF { #6 }{
-		\seq_set_split:NVn \l_@@_rightindices_seq \l_@@_delimiter_tl { #6 }
-	}
-
-	\int_set:Nn \l_tmpa_int { \seq_count:N \l_@@_leftindices_seq }
-	\int_set:Nn \l_tmpb_int { \seq_count:N \l_@@_rightindices_seq }
+	\int_set:Nn \l_tmpa_int { \seq_count:N #6 }
+	\int_set:Nn \l_tmpb_int { \seq_count:N #7 }
 
 	\hbox_set:Nn \l_tmpa_box {  }
 
@@ -403,30 +447,28 @@ fusioncategories.ins, fusioncategories.sty
 
 	\tl_put_right:Nn \l_@@_left_tl { 
 		\int_if_zero:nF { \l_tmpa_int } {
-			\begin{xsmallmatrix}
-				\seq_item:Nn \l_@@_leftindices_seq {3} \\
-				\seq_item:Nn \l_@@_leftindices_seq {2} \\
-				\seq_item:Nn \l_@@_leftindices_seq {1} 
-			\end{xsmallmatrix}\!\!
+			\seq_reverse:N #6
+			\@@_beginsmallmatrix:
+				\seq_use:Nn #6 { \\ }
+			\@@_endsmallmatrix: \!\!
 		}
 	 }
 
-	\tl_put_right:Nn \l_@@_middle_tl { 
-		\IfBooleanT { #2 }{	\cs:w overline \cs_end: \c_group_begin_token }
-			#1
-			\sb{\seq_use:Nn \l_@@_subscripts_seq {}}
-			\sp{ \seq_use:Nn \l_@@_superscripts_seq {}}
-		\IfBooleanT { #2 }{ \c_group_end_token }
+	 \tl_put_right:Nn \l_@@_middle_tl { 
+		\IfBooleanT { #3 }{	\cs:w overline \cs_end: \c_group_begin_token }
+		#2
+		\c_math_subscript_token { \centering \seq_use:Nn #4 {} }
+		\c_math_superscript_token { \centering \seq_use:Nn #5 {} }
+		\IfBooleanT { #3 }{ \c_group_end_token }
 	 }
 
 	\tl_put_right:Nn \l_@@_right_tl { 
 		\int_if_zero:nF { \l_tmpb_int } {
 			\!\!
-			\begin{xsmallmatrix}
-				\seq_item:Nn \l_@@_rightindices_seq {3} \\
-				\seq_item:Nn \l_@@_rightindices_seq {2} \\
-				\seq_item:Nn \l_@@_rightindices_seq {1}
-			\end{xsmallmatrix}
+			\seq_reverse:N #7
+			\@@_beginsmallmatrix:
+				\seq_use:Nn #7 { \\ }
+			\@@_endsmallmatrix:
 		}
 	}
 
@@ -450,6 +492,38 @@ fusioncategories.ins, fusioncategories.sty
 		\tl_put_left:Nn \l_@@_middle_tl { \l_@@_left_tl }
 		\tl_put_right:Nn \l_@@_middle_tl { \l_@@_right_tl }
 	}
+}
+
+\str_case_e:nn { \l_@@_style_tl } {
+	{ graphical } {
+		\cs_new_eq:NN \@@_style:Nnnnnnn \@@_graphicalstyle:Nnnnnnn
+	}
+	{ traditional } {
+		\cs_new_eq:NN \@@_style:Nnnnnnn \@@_traditionalstyle:Nnnnnnn
+	}
+	{ compact } {
+		\cs_new_eq:NN \@@_catsymbol:nnnnnn \@@_compactsymbol:nnnnnn
+	}
+}
+
+
+\cs_new:Npn \@@_split_if_nonblank_else_clear:Nn #1 #2 {
+	\tl_if_blank:nTF { #2 } { 
+		\seq_clear:N #1
+	} 
+	{ 
+		\seq_set_split:NVn #1 \l_@@_delimiter_tl { #2 } 
+	}
+}
+
+\cs_new_protected:Npn \@@_catsymbol:nnnnnn #1 #2 #3 #4 #5 #6 {
+	
+	\@@_split_if_nonblank_else_clear:Nn \l_@@_subscripts_seq { #3 }
+	\@@_split_if_nonblank_else_clear:Nn \l_@@_superscripts_seq { #4 }
+	\@@_split_if_nonblank_else_clear:Nn \l_@@_leftindices_seq { #5 }
+	\@@_split_if_nonblank_else_clear:Nn \l_@@_rightindices_seq { #6 }
+
+	\@@_graphicalstyle:Nnnnnnn \l_@@_middle_tl { #1 } { #2 } { \l_@@_subscripts_seq } { \l_@@_superscripts_seq } { \l_@@_leftindices_seq } { \l_@@_rightindices_seq }
 
 	\ensuremath{\tl_use:N \l_@@_middle_tl}
 }
@@ -472,24 +546,57 @@ fusioncategories.ins, fusioncategories.sty
 	}
 }
 
-\cs_new:Npn \@@_createsymbol:nnnnn #1 #2 #3 #4 #5
+\cs_generate_variant:Nn \tl_if_head_eq_catcode:nNTF { xNTF }
+
+\prg_new_conditional:Npnn \@@_if_is_cs:n #1 { T,F,TF }
 {
-	\seq_set_from_clist:Nn \l_tmpa_seq { #2, #3, #4, #5 }
+	\tl_trim_spaces_apply:nN {#1} \tl_if_head_eq_catcode:nNTF \c_backslash_str
+	{
+		\prg_return_true:
+	}
+	{
+		\prg_return_false:
+	}
+}
+
+\tl_new:N \l_@@_tmpa_t
+
+\cs_new:Npn \@@_createsymbol:nnnnnnn #1 #2 #3 #4 #5 #6 #7
+{
+	\seq_set_from_clist:Nn \l_tmpa_seq { #4, #5, #6, #7 }
 	\tl_set:Nx \l_@@_argspec_tl { \prg_replicate:nn { \seq_count:N \l_tmpa_seq } { m~ } }
 
 	\int_set:Nn \l_tmpa_int { 2 }
 
 	\seq_clear:N \l_@@_command_seq
 
-	\@@_addtosequence:NVn \l_@@_command_seq \l_tmpa_int { #2 }
-	\@@_addtosequence:NVn \l_@@_command_seq \l_tmpa_int { #3 }
 	\@@_addtosequence:NVn \l_@@_command_seq \l_tmpa_int { #4 }
 	\@@_addtosequence:NVn \l_@@_command_seq \l_tmpa_int { #5 }
+	\@@_addtosequence:NVn \l_@@_command_seq \l_tmpa_int { #6 }
+	\@@_addtosequence:NVn \l_@@_command_seq \l_tmpa_int { #7 }
 
+	\tl_set:Nn \l_@@_tmpa_t { #3 }
+	\tl_trim_spaces:N \l_@@_tmpa_t
+
+	\@@_if_is_cs:nTF { #3 } {
+		\tl_set:Nx \l_tmpa_tl { \str_range:Nnn \l_@@_tmpa_t { 2 }{ -1 } }
+	}{
+		\tl_set:Nn \l_tmpa_tl { #3 }
+	}
+	\tl_trim_spaces:N \l_tmpa_tl
+	
+	\tl_if_blank:nTF { #2 }{
+		\tl_set:Nn \l_tmpb_tl { #3 }
+	}{
+		\tl_set:Nn \l_tmpb_tl { #2 }
+	}
+	
 	\tl_set:Nx \l_tmpa_tl { 
-		\exp_not:N \DeclareDocumentCommand { \exp_not:c { #1Symbol } } { ~s~\l_@@_argspec_tl } 
+		\exp_not:c {#1 DocumentCommand} { \exp_not:c { \l_tmpa_tl Symbol } } { ~s~\l_@@_argspec_tl } 
 		{
-			 \exp_not:c {@@_catsymbol:nnnnnn}{#1}{ ####1 }{ \seq_item:Nn \l_@@_command_seq {1} }{ \seq_item:Nn \l_@@_command_seq {2} }{ \seq_item:Nn \l_@@_command_seq {3} }{ \seq_item:Nn \l_@@_command_seq {4} } } }
+			 \exp_not:c {@@_catsymbol:nnnnnn}{ \exp_not:V \l_tmpb_tl }{ ####1 }{ \seq_item:Nn \l_@@_command_seq {1} }{ \seq_item:Nn \l_@@_command_seq {2} }{ \seq_item:Nn \l_@@_command_seq {3} }{ \seq_item:Nn \l_@@_command_seq {4} } 
+		}
+	}
 
 	\tl_use:N \l_tmpa_tl
 }
@@ -497,15 +604,16 @@ fusioncategories.ins, fusioncategories.sty
 %
 % \begin{macro}{\NSymbol,\XSymbol,\FSymbol,\RSymbol}
 %    \begin{macrocode}
-\@@_createsymbol:nnnnn { N }{ true }{ true }{  }{  }
-\@@_createsymbol:nnnnn { X }{ true }{ true }{  }{ true }
-\@@_createsymbol:nnnnn { F }{ true }{ true }{ true }{ true }
-\@@_createsymbol:nnnnn { R }{ true }{ true }{ true }{ true }
+\@@_createsymbol:nnnnnnn { New } { } { N }{ true }{ true }{  }{  }
+\@@_createsymbol:nnnnnnn { New } { } { X }{ true }{ true }{  }{ true }
+\@@_createsymbol:nnnnnnn { New } { } { F }{ true }{ true }{ true }{ true }
+\@@_createsymbol:nnnnnnn { New } { } { R }{ true }{ true }{ true }{ true }
 
 \cs_new_eq:NN \F \FSymbol
 
 %    \end{macrocode}
 % \end{macro}
+
 %
 % \iffalse
 %</fusioncategories>
