@@ -2,7 +2,7 @@
 %<*internal>
 %
 \ProvidesFile{fusioncategories.dtx}
-[2024-07-28 v0.1.1 FusionCategories package]
+[2024-07-30 v0.1.2 FusionCategories package]
 %
 \begingroup
 %</internal>
@@ -83,7 +83,7 @@ fusioncategories.ins, fusioncategories.sty
 %<*driver>
 \documentclass[full,a4paper,noindex]{l3doc}
 
-\usepackage{titlesec,titletoc,xcolor}
+\usepackage{titlesec,titletoc,xcolor,soul}
 \usepackage{fusioncategories}
 %
 \setcounter{secnumdepth}{4}
@@ -192,6 +192,7 @@ fusioncategories.ins, fusioncategories.sty
 %
 % \changes{v0.1.0}{2024-07-28}{Initial version}
 % \changes{v0.1.1}{2024-07-29}{Added support for Greek letters and command names being different from the symbol text}
+% \changes{v0.1.2}{2024-07-30}{Restyled the index locations}
 %
 % \iffalse
 %
@@ -206,20 +207,28 @@ fusioncategories.ins, fusioncategories.sty
 %
 % \begin{packageoption}{delimiter}
 %	\begin{syntax}
+%		delimiter = \{\meta{delimiter}\} 
 %		\default{,}
 %	\end{syntax}
 %	Sets the delimiter for the subscripts, superscripts, left indices, and right indices.
 % \end{packageoption}
 %
-% \section{Functions}
+% \begin{packageoption}{style}
+%	\begin{syntax}
+%		style = \meta{style} \--- \{\defaultstyle{graphical},traditional,compact\}
+%	\end{syntax}
+%	Sets the style for symbol indices. The default style is \defaultstyle{\opt{graphical}}, which places the indices in a style mimiciking their location on a string diagram. 
+%	The \opt{traditional} style places the indices in a more traditional style, and the \opt{compact} style places the indices with left indices at the bottom and right indices at the top.
+% \end{packageoption}
 %
+% \section{Commands}
 %
 % \begin{function}{\NewSymbol,\RenewSymbol,\ProvideSymbol,\DeclareSymbol}
 %	\begin{syntax}
 %		\cs{NewSymbol}\oarg{Symbol text}\marg{Symbol name}\marg{subscripts?}\marg{superscripts?}\marg{left indices?}\marg{right indices?}
 %	\end{syntax}
 %	Creates a new symbol command with the specified argument types.
-%	For example,:
+%	For example:
 %	\begin{description}
 %	\item \lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NewSymbol{N}{true}{true}{}{}! creates the command:\\
 %	\lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\NSymbol!, which can be used as follows:\\
@@ -238,16 +247,16 @@ fusioncategories.ins, fusioncategories.sty
 %	\item All commands created with \cs{NewSymbol} also accept an optional star argument to place an overline over the symbol.
 %	\end{description}
 %	\begin{description}
-%		\item \NewSymbol will only create a new symbol command if the command does not already exist, otherwise it will throw an error.
-%		\item \RenewSymbol will overwrite an existing symbol command with the same name. If the command does not exist, it will throw an error.
-%		\item \ProvideSymbol will create a new symbol command if the command does not already exist, otherwise it will do nothing.
-%		\item \DeclareSymbol will create a new symbol regardless of whether the command already exists. If the command already exists, it will overwrite the existing command without warning.
+%		\item \cs{NewSymbol} will only create a new symbol command if the command does not already exist, otherwise it will throw an error.
+%		\item \cs{RenewSymbol} will overwrite an existing symbol command with the same name. If the command does not exist, it will throw an error.
+%		\item \cs{ProvideSymbol} will create a new symbol command if the command does not already exist, otherwise it will do nothing.
+%		\item \cs{DeclareSymbol} will create a new symbol regardless of whether the command already exists. If the command already exists, it will overwrite the existing command without warning.
 %	\end{description}
 % \end{function}
 %
 % \begin{function}{\NSymbol}
 %	\begin{syntax}
-%		\cs{NSymbol}\oarg{options}\marg{subscripts}\marg{superscripts}
+%		\cs{NSymbol}\meta{*}\marg{subscripts}\marg{superscripts}
 %	\end{syntax}
 %	Produces a symbol with the specified subscripts and superscripts. 
 %	 \begin{description}
@@ -257,7 +266,7 @@ fusioncategories.ins, fusioncategories.sty
 %
 % \begin{function}{\XSymbol}
 %	\begin{syntax}
-%		\cs{XSymbol}\oarg{options}\marg{subscripts}\marg{superscripts}\marg{right indices}
+%		\cs{XSymbol}\meta{*}\marg{subscripts}\marg{superscripts}\marg{right indices}
 %	\end{syntax}
 %	Produces a symbol with the specified subscripts, superscripts, and right indices.
 %	\begin{description}
@@ -267,7 +276,7 @@ fusioncategories.ins, fusioncategories.sty
 %
 % \begin{function}{\FSymbol}
 %	\begin{syntax}
-%		\cs{FSymbol}\oarg{options}\marg{subscripts}\marg{superscripts}\marg{left indices}\marg{right indices}
+%		\cs{FSymbol}\meta{*}\marg{subscripts}\marg{superscripts}\marg{left indices}\marg{right indices}
 %	\end{syntax}
 %	Produces a symbol with the specified subscripts, superscripts, left indices, and right indices.
 %	\begin{description}
@@ -278,7 +287,7 @@ fusioncategories.ins, fusioncategories.sty
 
 % \begin{function}{\RSymbol}
 %	\begin{syntax}
-%		\cs{RSymbol}\oarg{options}\marg{subscripts}\marg{superscripts}\marg{left indices}\marg{right indices}
+%		\cs{RSymbol}\meta{*}\marg{subscripts}\marg{superscripts}\marg{left indices}\marg{right indices}
 %	\end{syntax}
 %	Produces a symbol with the specified subscripts, superscripts, left indices, and right indices.
 %	\begin{description}
@@ -286,6 +295,17 @@ fusioncategories.ins, fusioncategories.sty
 %	\end{description}
 % \end{function}
 %
+%
+% \begin{function}{\PentagonEquation}
+%	\begin{syntax}
+%		\cs{PentagonEquation}\meta{*}\oarg{$a$}\oarg{$b$}\oarg{$c$}\oarg{$\alpha$}\oarg{$\beta$}\oarg{$\gamma$}
+%	\end{syntax}
+%	\begin{description}
+%		\item Typesets the pentagon equation for a fusion category. If the optional $*$ argument is used, the equation is typeset for the multiplicity free case.
+%		\item The optional arguments $a$, $b$, $c$, $\alpha$, $\beta$, and $\gamma$ are used to specify the symbols used in the equation. If these arguments are left blank, the default symbols are used.
+%		\item \lstinline[language={[LaTeX]TeX},basicstyle=\ttfamily]!\PentagonEquation*! produces: $$\PentagonEquation*.$$
+%	\end{description}
+% \end{function}
 % \end{documentation}
 %
 % \begin{implementation}
@@ -294,8 +314,8 @@ fusioncategories.ins, fusioncategories.sty
 %    \begin{macrocode} 
 %<*fusioncategories>
 %<@@=fusioncategories>
-\ProvidesExplPackage{fusioncategories}{2024-07-29}{0.1.1}{A package for fusion category data}
-%%^^A 2022-01-10
+\ProvidesExplPackage{fusioncategories}{2024-07-30}{0.1.2}{A package for fusion category data}
+
 \RequirePackage{expl3}[2020-01-01]
 
 \cs_if_exist:NF \IfPackageAtLeastTF {
@@ -349,8 +369,8 @@ fusioncategories.ins, fusioncategories.sty
 	style .choice:,
 	style .value_required:n = true,
 	style / graphical .code:n = { \tl_set:Nn \l_@@_style_tl { graphical } },
-	%%^^A style / traditional .code:n = { \tl_set:Nn \l_@@_style_tl { traditional } },
-	%%^^A style / compact .code:n = { \tl_set:Nn \l_@@_style_tl { compact } },
+	style / traditional .code:n = { \tl_set:Nn \l_@@_style_tl { traditional } },
+	style / compact .code:n = { \tl_set:Nn \l_@@_style_tl { compact } },
 	style / unknown .code:n = {
 		\msg_error:nnnnn { fusioncategories }{ unknown_option_value }{ #1 }
 		{ style }{ graphical }
@@ -418,13 +438,6 @@ fusioncategories.ins, fusioncategories.sty
 \seq_new:N \l_@@_leftindices_seq
 \seq_new:N \l_@@_rightindices_seq
 
-\cs_new:Nn \@@_beginsmallmatrix: { \renewcommand\thickspace{\kern 0.01ex} \begin{smallmatrix} }
-\cs_new:Nn \@@_endsmallmatrix: { \end{smallmatrix} }
-
-\tl_new:N \l_@@_left_tl
-\tl_new:N \l_@@_middle_tl
-\tl_new:N \l_@@_right_tl
-
 \cs_generate_variant:Nn \seq_set_split:Nnn { NVn }
 
 \cs_if_exist:NF \int_if_zero_p:n {
@@ -434,78 +447,188 @@ fusioncategories.ins, fusioncategories.sty
 	}
 }
 
-\cs_new:Npn \@@_graphicalstyle:Nnnnnnn #1 #2 #3 #4 #5 #6 #7 {
+\cs_if_exist:NF \dim_if_zero_p:n {
+	\prg_new_conditional:Npnn \dim_if_zero:n #1 { p,T,F,TF }
+	{
+		\int_compare:nNnTF {#1} = { 0 } { \prg_return_true: } { \prg_return_false: }
+	}
+}
 
-	\int_set:Nn \l_tmpa_int { \seq_count:N #6 }
-	\int_set:Nn \l_tmpb_int { \seq_count:N #7 }
+\coffin_new:N \l_@@_symbol_coffin
+\coffin_new:N \l_@@_subscript_coffin
+\coffin_new:N \l_@@_superscript_coffin
+\coffin_new:N \l_@@_leftindex_coffin
+\coffin_new:N \l_@@_rightindex_coffin
 
-	\hbox_set:Nn \l_tmpa_box {  }
+\dim_const:Nn \l_@@_finetune_dim { 0.2pt }
 
-	\tl_clear:N \l_@@_left_tl
-	\tl_clear:N \l_@@_middle_tl
-	\tl_clear:N \l_@@_right_tl
+\cs_new:Npn \@@_clearstylecoffins: {
+	\coffin_gclear:N \l_@@_symbol_coffin
+	\coffin_gclear:N \l_@@_subscript_coffin
+	\coffin_gclear:N \l_@@_superscript_coffin
+	\coffin_gclear:N \l_@@_leftindex_coffin
+}
 
-	\tl_put_right:Nn \l_@@_left_tl { 
-		\int_if_zero:nF { \l_tmpa_int } {
-			\seq_reverse:N #6
-			\@@_beginsmallmatrix:
-				\seq_use:Nn #6 { \\ }
-			\@@_endsmallmatrix: \!\!
-		}
-	 }
+\cs_new:Npn \@@_mainsymbol:nnnn #1#2#3#4 {
 
-	 \tl_put_right:Nn \l_@@_middle_tl { 
-		\IfBooleanT { #3 }{	\cs:w overline \cs_end: \c_group_begin_token }
-		#2
-		\c_math_subscript_token { \centering \seq_use:Nn #4 {} }
-		\c_math_superscript_token { \centering \seq_use:Nn #5 {} }
-		\IfBooleanT { #3 }{ \c_group_end_token }
-	 }
+	\@@_clearstylecoffins:
 
-	\tl_put_right:Nn \l_@@_right_tl { 
-		\int_if_zero:nF { \l_tmpb_int } {
-			\!\!
-			\seq_reverse:N #7
-			\@@_beginsmallmatrix:
-				\seq_use:Nn #7 { \\ }
-			\@@_endsmallmatrix:
-		}
+	\hcoffin_set:Nn \l_@@_symbol_coffin { \ensuremath{#1} }
+	\hcoffin_set:Nn \l_@@_subscript_coffin { \ensuremath{ \scriptstyle \seq_use:Nn #3 {} } }
+	\hcoffin_set:Nn \l_@@_superscript_coffin { \ensuremath{ \scriptstyle \seq_use:Nn #4 {} } }
+
+	\dim_compare:nNnTF { \coffin_wd:N \l_@@_subscript_coffin } > { \coffin_wd:N \l_@@_superscript_coffin }
+	{
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { b } { r } \l_@@_subscript_coffin { vc } { l } { 0pt } { \l_@@_finetune_dim }
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { t } { r } \l_@@_superscript_coffin { vc } { l } { -0.5\coffin_wd:N \l_@@_subscript_coffin-0.5\coffin_wd:N \l_@@_superscript_coffin } { -\l_@@_finetune_dim }
+	}
+	{
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { t } { r } \l_@@_superscript_coffin { vc } { l } { 0pt } { -\l_@@_finetune_dim }
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { b } { r } \l_@@_subscript_coffin { vc } { l } { -0.5\coffin_wd:N \l_@@_subscript_coffin - 0.5\coffin_wd:N \l_@@_superscript_coffin } { \l_@@_finetune_dim }
 	}
 
-	\hbox_set:Nn \l_tmpa_box { \ensuremath{\tl_use:N \l_@@_left_tl} }
-	\dim_set:Nn \l_tmpa_dim { \box_ht:N \l_tmpa_box }
-
-	\hbox_set:Nn \l_tmpa_box { \ensuremath{\tl_use:N \l_@@_right_tl} }
-	\dim_set:Nn \l_tmpb_dim { \box_ht:N \l_tmpa_box }
-
-	\dim_set:Nn \l_tmpa_dim { \dim_max:nn { \l_tmpa_dim } { \l_tmpb_dim } }
-
-	\hbox_set:Nn \l_tmpa_box { \ensuremath{\tl_use:N \l_@@_middle_tl} }
-	\dim_set:Nn \l_tmpb_dim { \box_ht:N \l_tmpa_box }
-
-	\dim_set:Nn \l_tmpa_dim { \dim_max:nn { \l_tmpa_dim } { \l_tmpb_dim } }
-
-	
-	\int_if_zero:nF {\l_tmpa_int + \l_tmpb_int } {
-		\tl_put_left:Nn \l_@@_middle_tl { \left[\rule{ 0pt }{ \dim_eval:n { 1.05 \l_tmpa_dim } } }
-		\tl_put_right:Nn \l_@@_middle_tl { \right]}
-		\tl_put_left:Nn \l_@@_middle_tl { \l_@@_left_tl }
-		\tl_put_right:Nn \l_@@_middle_tl { \l_@@_right_tl }
+	\IfBooleanT { #2 }{	
+		\hcoffin_set:Nn \l_tmpa_coffin { \rule { 0.80 \coffin_wd:N \l_@@_symbol_coffin }{ 0.4pt } }
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { hc } { t } \l_tmpa_coffin { hc } { b } { 0pt } { 1pt }
 	}
+}
+
+\hbox_set:Nn \l_tmpa_box { \ensuremath{ \scriptstyle \beta \c_math_subscript_token {0} } }
+
+\dim_const:Nn \l_@@_indexht_dim { 
+		\dim_eval:n { \box_ht:N \l_tmpa_box + \box_dp:N \l_tmpa_box } 
+	}
+\dim_const:Nn \l_@@_indexdp_dim { 
+		\dim_eval:n { \box_dp:N \l_tmpa_box } 
+	}
+
+	\cs_new:Npn \@@_graphicalstyle:nnnnnn #1 #2 #3 #4 #5 #6 { %%^^A #1 = symbol, #2=star , #3 = subscripts, #4 = superscripts, #5 = left indices, #6 = right indices
+		
+	\@@_mainsymbol:nnnn { #1 } { #2 } { #3 } { #4 }
+
+	\int_if_zero:nF { \int_eval:n {\seq_count:N #5 + \seq_count:N #6} }
+	{
+		\dim_set:Nn \l_tmpa_dim { \coffin_ht:N \l_@@_symbol_coffin }
+		\dim_zero:N \l_tmpb_dim
+
+		\coffin_clear:N \l_@@_leftindex_coffin
+		\coffin_clear:N \l_@@_rightindex_coffin
+
+		\seq_map_inline:Nn #5 {
+			\dim_add:Nn \l_tmpb_dim { \l_@@_indexht_dim - 2\l_@@_indexdp_dim  }
+			\dim_if_zero:nTF { \coffin_ht:N \l_@@_leftindex_coffin }{
+				\hcoffin_set:Nn \l_@@_leftindex_coffin { \ensuremath{ \scriptstyle ##1 \rule[-\l_@@_indexdp_dim]{ 0pt }{ \l_@@_indexht_dim } } }
+			}{
+				\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{ \scriptstyle ##1 \rule[-\l_@@_indexdp_dim]{ 0pt }{ \l_@@_indexht_dim } } }
+				\coffin_join:NnnNnnnn \l_@@_leftindex_coffin { hc } { t } \l_tmpa_coffin { hc } { b } { 0pt } { 0pt }
+			}
+		}
+
+		\dim_set:Nn \l_tmpa_dim { \dim_max:nn { \l_tmpa_dim } { \l_tmpb_dim } }
+		\dim_zero:N \l_tmpb_dim
+
+		\seq_map_inline:Nn #6 {
+			\dim_add:Nn \l_tmpb_dim { \l_@@_indexht_dim - 2\l_@@_indexdp_dim }
+			\dim_if_zero:nTF { \coffin_ht:N \l_@@_rightindex_coffin }{
+				\hcoffin_set:Nn \l_@@_rightindex_coffin { \ensuremath{ \scriptstyle ##1 \rule[-\l_@@_indexdp_dim]{ 0pt }{ \l_@@_indexht_dim } } }
+			}{
+				\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{ \scriptstyle ##1 \rule[-\l_@@_indexdp_dim]{ 0pt }{ \l_@@_indexht_dim } } }
+				\coffin_join:NnnNnnnn \l_@@_rightindex_coffin { hc } { t } \l_tmpa_coffin { hc } { b } { 0pt } { 0pt }
+			}
+		}
+		
+		\dim_set:Nn \l_tmpa_dim { \dim_max:nn { \l_tmpa_dim } { \l_tmpb_dim } }
+
+		\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{\left[\rule{ 0pt }{ \dim_eval:n { \l_tmpa_dim } }\right.}  }	
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { l } { vc } \l_tmpa_coffin { r } { vc } { 0.25 \coffin_wd:N \l_tmpa_coffin } { 0pt }
+
+		\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{\left.\rule{ 0pt }{ \dim_eval:n { \l_tmpa_dim } }\right]}  }
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { vc } \l_tmpa_coffin { l } { vc } { -0.2 \coffin_wd:N \l_tmpa_coffin } { 0pt }
+
+
+		\bool_if:nTF { \int_compare_p:nNn { \seq_count:N #5 } > { 1 } || \int_compare_p:nNn { \seq_count:N #6 } > { 1 } }
+		{
+			\coffin_join:NnnNnnnn \l_@@_symbol_coffin { l } { vc } \l_@@_leftindex_coffin { r } { vc } { \l_@@_finetune_dim } { 0pt }
+			\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { vc } \l_@@_rightindex_coffin { l } { vc } { -\l_@@_finetune_dim } { 0pt }
+		}{
+			\coffin_join:NnnNnnnn \l_@@_symbol_coffin { l } { b } \l_@@_leftindex_coffin { r } { H } { \l_@@_finetune_dim } { 0pt }
+			\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { b } \l_@@_rightindex_coffin { l } { H } { -\l_@@_finetune_dim } { 0pt }
+		}		
+	}
+
+	\coffin_typeset:Nnnnn \l_@@_symbol_coffin { l } { b } { 0pt } { -\coffin_dp:N \l_@@_symbol_coffin }
+}
+
+\cs_new:Npn \@@_traditionalstyle:nnnnnn #1 #2 #3 #4 #5 #6 { %%^^A #1 = symbol, #2=star , #3 = subscripts, #4 = superscripts, #5 = left indices, #6 = right indices
+
+	\@@_mainsymbol:nnnn { #1 } { #2 } { #3 } { #4 }
+
+	\int_if_zero:nF { \int_eval:n {\seq_count:N #5 + \seq_count:N #6} }
+	{
+		\dim_set:Nn \l_tmpa_dim { \coffin_ht:N \l_@@_symbol_coffin }
+		\dim_set:Nn \l_tmpb_dim { \coffin_dp:N \l_@@_symbol_coffin }
+
+		\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{\left[\rule{ 0pt }{ \dim_eval:n { 1.025 \l_tmpa_dim } }\right.}  }
+
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { l } { vc } \l_tmpa_coffin { r } { vc } { 0.25 \coffin_wd:N \l_tmpa_coffin } { 0pt }
+
+		\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{\left.\rule{ 0pt }{ \dim_eval:n { 1.03 \l_tmpa_dim } }\right]}  }
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { vc } \l_tmpa_coffin { l } { vc } { -0.2 \coffin_wd:N \l_tmpa_coffin } { 0pt }
+
+		\bool_if:nTF { \int_compare_p:nNn { \seq_count:N #5 } > { 1 } || \int_compare_p:nNn { \seq_count:N #6 } > { 1 } }
+		{
+			\hcoffin_set:Nn \l_@@_leftindex_coffin { \ensuremath{ \scriptstyle ( \seq_use:Nn #5 {} ) } }
+			\hcoffin_set:Nn \l_@@_rightindex_coffin { \ensuremath{ \scriptstyle  ( \seq_use:Nn #6 {} ) } }
+		}{
+			\hcoffin_set:Nn \l_@@_leftindex_coffin { \ensuremath{ \scriptstyle \seq_use:Nn #5 {} } }
+			\hcoffin_set:Nn \l_@@_rightindex_coffin { \ensuremath{ \scriptstyle \seq_use:Nn #6 {} } }
+		}
+		\coffin_join:NnnNnnnn \l_@@_leftindex_coffin { r } { vc } \l_@@_rightindex_coffin { l } { vc } { 0pt } { 0pt }
+		
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { b } \l_@@_leftindex_coffin { l } { vc } { -\l_@@_finetune_dim } { 0pt }
+	}
+
+	\coffin_typeset:Nnnnn \l_@@_symbol_coffin { l } { b } { 0pt } { -\coffin_dp:N \l_@@_symbol_coffin }
+}
+
+\cs_new:Npn \@@_compactstyle:nnnnnn #1 #2 #3 #4 #5 #6 { %%^^A #1 = symbol, #2=star , #3 = subscripts, #4 = superscripts, #5 = left indices, #6 = right indices
+
+	\@@_mainsymbol:nnnn { #1 } { #2 } { #3 } { #4 }
+
+	\int_if_zero:nF { \int_eval:n {\seq_count:N #5 + \seq_count:N #6} }
+	{
+		\dim_set:Nn \l_tmpa_dim { \coffin_ht:N \l_@@_symbol_coffin }
+		\dim_set:Nn \l_tmpb_dim { \coffin_dp:N \l_@@_symbol_coffin }
+
+		\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{\left[\rule{ 0pt }{ \dim_eval:n { 1.025 \l_tmpa_dim } }\right.}  }
+
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { l } { vc } \l_tmpa_coffin { r } { vc } { 0.25 \coffin_wd:N \l_tmpa_coffin } { 0pt }
+
+		\hcoffin_set:Nn \l_tmpa_coffin { \ensuremath{\left.\rule{ 0pt }{ \dim_eval:n { 1.03 \l_tmpa_dim } }\right]}  }
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { vc } \l_tmpa_coffin { l } { vc } { -0.2 \coffin_wd:N \l_tmpa_coffin } { 0pt }
+
+		\hcoffin_set:Nn \l_@@_leftindex_coffin { \ensuremath{ \scriptstyle \seq_use:Nn #5 {} } }
+		\hcoffin_set:Nn \l_@@_rightindex_coffin { \ensuremath{ \scriptstyle \seq_use:Nn #6 {} } }
+		
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { t } \l_@@_rightindex_coffin { l } { t } { -\l_@@_finetune_dim } { 0pt }
+		
+		\coffin_join:NnnNnnnn \l_@@_symbol_coffin { r } { b } \l_@@_leftindex_coffin { l } { b } { -\l_@@_finetune_dim - \coffin_wd:N \l_@@_rightindex_coffin } { 0pt }
+	}
+
+	\coffin_typeset:Nnnnn \l_@@_symbol_coffin { l } { b } { 0pt } { - \coffin_dp:N \l_@@_symbol_coffin }
 }
 
 \str_case_e:nn { \l_@@_style_tl } {
 	{ graphical } {
-		\cs_new_eq:NN \@@_style:Nnnnnnn \@@_graphicalstyle:Nnnnnnn
+		\cs_new_eq:NN \@@_style:nnnnnn \@@_graphicalstyle:nnnnnn
 	}
 	{ traditional } {
-		\cs_new_eq:NN \@@_style:Nnnnnnn \@@_traditionalstyle:Nnnnnnn
+		\cs_new_eq:NN \@@_style:nnnnnn \@@_traditionalstyle:nnnnnn
 	}
 	{ compact } {
-		\cs_new_eq:NN \@@_catsymbol:nnnnnn \@@_compactsymbol:nnnnnn
+		\cs_new_eq:NN \@@_style:nnnnnn \@@_compactstyle:nnnnnn
 	}
 }
-
 
 \cs_new:Npn \@@_split_if_nonblank_else_clear:Nn #1 #2 {
 	\tl_if_blank:nTF { #2 } { 
@@ -523,9 +646,7 @@ fusioncategories.ins, fusioncategories.sty
 	\@@_split_if_nonblank_else_clear:Nn \l_@@_leftindices_seq { #5 }
 	\@@_split_if_nonblank_else_clear:Nn \l_@@_rightindices_seq { #6 }
 
-	\@@_graphicalstyle:Nnnnnnn \l_@@_middle_tl { #1 } { #2 } { \l_@@_subscripts_seq } { \l_@@_superscripts_seq } { \l_@@_leftindices_seq } { \l_@@_rightindices_seq }
-
-	\ensuremath{\tl_use:N \l_@@_middle_tl}
+	\@@_style:nnnnnn { #1 } { #2 } { \l_@@_subscripts_seq } { \l_@@_superscripts_seq } { \l_@@_leftindices_seq } { \l_@@_rightindices_seq }
 }
 
 \seq_new:N \l_@@_command_seq
@@ -609,7 +730,231 @@ fusioncategories.ins, fusioncategories.sty
 \@@_createsymbol:nnnnnnn { New } { } { F }{ true }{ true }{ true }{ true }
 \@@_createsymbol:nnnnnnn { New } { } { R }{ true }{ true }{ true }{ true }
 
-\cs_new_eq:NN \F \FSymbol
+\cs_if_exist:NF \F {
+	\cs_new_eq:NN \F \FSymbol
+}
+
+\tl_new:N \l_@@_alabel_tl
+\tl_new:N \l_@@_blabel_tl
+\tl_new:N \l_@@_clabel_tl
+
+\cs_new:Npn \@@_pentagonlabel:Nn #1 #2 #3 {
+	\tl_set:Nn #1 { \IfValueTF{#2}{#2}{#3} }
+}
+
+\NewDocumentCommand{\PentagonEquation}{ s o o o o o o }{
+	\@@_pentagonlabel:Nn \l_@@_alabel_tl { #2 } { a }
+	\@@_pentagonlabel:Nn \l_@@_blabel_tl { #3 } { b }
+	\@@_pentagonlabel:Nn \l_@@_clabel_tl { #4 } { c }
+
+	\@@_pentagonlabel:Nn \l_@@_allabel_tl { #5 } { \alpha }
+	\@@_pentagonlabel:Nn \l_@@_btlabel_tl { #6 } { \beta }
+	\@@_pentagonlabel:Nn \l_@@_galabel_tl { #7 } { \gamma }
+	\IfBooleanTF{#1}{
+		\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_clabel_tl
+			\c_math_subscript_token{0}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{4}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{5}}{
+				\l_@@_clabel_tl
+			\c_math_subscript_token{1}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{5},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{2},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{3}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{4}}
+			{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{6}
+			}
+			{
+				\l_@@_clabel_tl
+			\c_math_subscript_token{0}
+			}
+				=
+				\sum
+			\c_math_subscript_token{
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{2}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{6}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{5}}{
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{3}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{4}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{6}}{
+				\l_@@_clabel_tl
+			\c_math_subscript_token{1}} 
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{2},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{3}}{
+				\l_@@_clabel_tl
+			\c_math_subscript_token{1}}{
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0}}{
+				\l_@@_clabel_tl
+			\c_math_subscript_token{0}}
+	}{
+		\sum
+			\c_math_subscript_token{
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{0}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_clabel_tl
+			\c_math_subscript_token{0}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{4}}{
+				\l_@@_allabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{5},
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{0}}{
+				\l_@@_galabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_clabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_galabel_tl
+			\c_math_subscript_token{2}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{5},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{2},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{3}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{4}}
+			{
+				\l_@@_allabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{6},
+				\l_@@_allabel_tl
+			\c_math_subscript_token{2}
+			}
+			{
+				\l_@@_galabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_clabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{0}
+			}
+				=
+				\sum
+			\c_math_subscript_token{
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0}}
+				\sum
+			\c_math_subscript_token{
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{2}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{2}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{6}}{
+				\l_@@_allabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{5},
+				\l_@@_allabel_tl
+			\c_math_subscript_token{1}}{
+					\l_@@_btlabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{1}}
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{3}}{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{4}}{
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{6},
+				\l_@@_allabel_tl
+			\c_math_subscript_token{2}}{
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{2},
+				\l_@@_clabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_galabel_tl
+			\c_math_subscript_token{2}} 
+			\FSymbol{
+				\l_@@_alabel_tl
+			\c_math_subscript_token{1},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{2},
+				\l_@@_alabel_tl
+			\c_math_subscript_token{3}}{
+				\l_@@_clabel_tl
+			\c_math_subscript_token{1}}{
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_blabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_btlabel_tl
+			\c_math_subscript_token{2}}{
+				\l_@@_galabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_clabel_tl
+			\c_math_subscript_token{0},
+				\l_@@_galabel_tl
+			\c_math_subscript_token{1}}
+	}
+}
+
 
 %    \end{macrocode}
 % \end{macro}
